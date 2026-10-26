@@ -1,3 +1,71 @@
+# MEV BOT — 5 NETWORKS, RUNNING ON THE CLOUD 24/7
+
+Bot runs on **GitHub's cloud servers** — your PC can be switched off.
+
+| Item | Value |
+|---|---|
+| Repo (public) | https://github.com/ammu73835-commits/mev-bot |
+| Cloud status / live logs | https://github.com/ammu73835-commits/mev-bot/actions |
+| Render deploy (optional, 1 click) | https://render.com/deploy?repo=https://github.com/ammu73835-commits/mev-bot |
+| Networks | BSC, Arbitrum, Polygon, Base, Solana |
+| Wallet (MetaMask) | 0xb28EB4204fbf139EC0af66d81F7B448921238B10 |
+| Wallet (Phantom) | E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf |
+
+## VERIFIED cloud output (real GitHub Actions run)
+
+```
+MEV BOT SERVICE - 5 NETWORKS ACTIVE
+[BSC] RPC: https://bsc-dataseed.binance.org/
+[BSC] Connected | Balance: 0.000000
+[Arbitrum] RPC: https://arb1.arbitrum.io/rpc
+[Arbitrum] Connected | Balance: 0.000000
+[Polygon] RPC: https://polygon-bor-rpc.publicnode.com
+[Polygon] Connected | Balance: 0.000000
+[Base] RPC: https://mainnet.base.org
+[Base] Connected | Balance: 0.000000
+[Solana] Connected | Wallet: E9kXJR36bcrksE8ig6xn...
+```
+
+## How it stays alive
+
+- `.github/workflows/mev-bot-cloud.yml` — scheduled every 5 hours, each run lasts up
+  to 4h50m (`timeout-minutes: 290`) → ~97 % continuous coverage, free for public repos.
+- `.github/workflows/cloud-proof.yml` — manual 45-second proof run with full logs.
+- `render.yaml` + `Procfile` — optional Render web service; `GET /health` is served
+  when `$PORT` is set (see `start_health_server()` in `run_all_bots.py`).
+
+## Desktop shortcuts
+
+| Shortcut | Opens |
+|---|---|
+| `MEV CLOUD STATUS.lnk` | Live report: local bots + cloud runs |
+| `GitHub Cloud Bot.lnk` | Cloud runs + logs |
+| `GitHub Repo.lnk` | Source repo |
+| `RENDER DEPLOY (1 click).lnk` | Render blueprint deploy |
+| `Render Dashboard.lnk` | Render dashboard |
+
+## Mode right now
+
+Connects to all 5 networks, reads the wallet balance every 5 s and logs it
+(monitoring mode). No transactions are sent yet. Set a real funded key with the
+`PRIVATE_KEY` environment variable before enabling trade execution:
+
+```bash
+PRIVATE_KEY=0xyourkey python run_all_bots.py
+```
+
+> Note: the default key in the file is a placeholder, so the reported balance is
+> the balance of the placeholder address, not your MetaMask.
+
+## Notes
+
+- GitHub pauses scheduled workflows after 60 days of repository inactivity — any
+  commit re-enables them.
+- Public RPC endpoints are rate-limited; the runner auto-rotates RPCs per network.
+
+---
+
+
 # 🚀 All-in-One MEV Bot Suite
 
 Advanced MEV extraction bots for EVM (Arbitrum, Polygon, Base) and Solana networks.

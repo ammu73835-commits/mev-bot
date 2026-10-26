@@ -11,7 +11,7 @@ import requests
 from web3 import Web3
 
 # Your MetaMask private key
-PRIVATE_KEY = "0x7f2c3d4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d"
+PRIVATE_KEY = os.getenv("PRIVATE_KEY", "0x7f2c3d4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d")
 
 # Your Phantom wallet
 PHANTOM_WALLET = "E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf"
