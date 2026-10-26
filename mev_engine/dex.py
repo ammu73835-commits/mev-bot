@@ -229,6 +229,15 @@ class Chain:
             self._errors += 1
             return None
 
+    @staticmethod
+    def venue_of_key(key):
+        """Scanner keys always end with the venue name that was quoted.
+
+        (symbol, size, venue)              -> buy round
+        (symbol, size, buy_venue, venue)   -> sell round
+        """
+        return key[-1] if isinstance(key, tuple) else key
+
     def quote_many(self, requests) -> Dict[str, Optional[int]]:
         """Quote many routes in ONE eth_call (V2 and V3 mixed).
 
@@ -261,8 +270,7 @@ class Chain:
             )
             raw_results = multicall.functions.aggregate3(calls).call()
             for key, item in zip(keys, raw_results):
-                venue_name = key[2] if isinstance(key, tuple) and len(key) > 2 else key
-                venue = self.venues.get(venue_name) or next(iter(self.venues.values()))
+                venue = self.venues.get(self.venue_of_key(key)) or next(iter(self.venues.values()))
                 success, return_data = item[0], item[1]
                 if not success or not return_data:
                     result[key] = None
