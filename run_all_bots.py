@@ -16,12 +16,29 @@ PRIVATE_KEY = "0x7f2c3d4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
 # Your Phantom wallet
 PHANTOM_WALLET = "E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf"
 
-# Networks
+# Networks (multiple RPCs per network - first working one wins, auto-rotate)
 NETWORKS = {
-    "BSC": "https://bsc-dataseed.binance.org/",
-    "Arbitrum": "https://arb1.arbitrum.io/rpc",
-    "Polygon": "https://polygon-rpc.com",
-    "Base": "https://mainnet.base.org"
+    "BSC": [
+        "https://bsc-dataseed.binance.org/",
+        "https://bsc-rpc.publicnode.com",
+        "https://binance.llamarpc.com",
+    ],
+    "Arbitrum": [
+        "https://arb1.arbitrum.io/rpc",
+        "https://arbitrum-one-rpc.publicnode.com",
+        "https://arbitrum.llamarpc.com",
+    ],
+    "Polygon": [
+        "https://polygon-bor-rpc.publicnode.com",
+        "https://polygon.llamarpc.com",
+        "https://1rpc.io/matic",
+        "https://polygon-rpc.com",
+    ],
+    "Base": [
+        "https://mainnet.base.org",
+        "https://base-rpc.publicnode.com",
+        "https://base.llamarpc.com",
+    ],
 }
 
 def print_banner():
@@ -32,22 +49,44 @@ def print_banner():
     print(f"Phantom:  {PHANTOM_WALLET}")
     print("=" * 60)
 
-async def monitor_evm(name, rpc):
-    """Monitor an EVM network"""
-    w3 = Web3(Web3.HTTPProvider(rpc))
-    wallet = w3.eth.account.from_key(PRIVATE_KEY)
-    
+def pick_rpc(name, rpcs, start=0):
+    """Return (web3, index) for the first RPC that answers."""
+    for offset in range(len(rpcs)):
+        idx = (start + offset) % len(rpcs)
+        rpc = rpcs[idx]
+        try:
+            w3 = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 8}))
+            if w3.is_connected():
+                print(f"[{name}] RPC: {rpc}")
+                return w3, idx
+        except Exception:
+            continue
+    return None, start
+
+
+async def monitor_evm(name, rpcs):
+    """Monitor an EVM network with automatic RPC rotation."""
+    wallet = Web3().eth.account.from_key(PRIVATE_KEY)
+    idx = 0
+    w3 = None
+
     while True:
         try:
-            if w3.is_connected():
-                balance = w3.from_wei(w3.eth.get_balance(wallet.address), 'ether')
+            if w3 is None or not w3.is_connected():
+                w3, idx = pick_rpc(name, rpcs, idx)
+            if w3 is not None and w3.is_connected():
+                balance = w3.from_wei(w3.eth.get_balance(wallet.address), "ether")
                 print(f"[{name}] Connected | Balance: {balance:.6f}")
             else:
                 print(f"[{name}] Reconnecting...")
+                idx = (idx + 1) % len(rpcs)
             await asyncio.sleep(5)
         except Exception as e:
             print(f"[{name}] Error: {e}")
+            w3 = None
+            idx = (idx + 1) % len(rpcs)
             await asyncio.sleep(5)
+
 
 async def monitor_solana():
     """Monitor Solana network"""
