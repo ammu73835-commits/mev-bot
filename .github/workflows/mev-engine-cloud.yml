@@ -1,0 +1,49 @@
+name: MEV Engine Cloud (profit-gated arbitrage, 24/7)
+
+on:
+  schedule:
+    # Offset from the heartbeat job (which runs at :07) so both stay alive.
+    # Each run lives ~4h40m => near-continuous coverage, free on public repos.
+    - cron: "17 */5 * * *"
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: "How long the engine should run (seconds)"
+        required: false
+        default: "600"
+
+concurrency:
+  group: mev-engine
+  cancel-in-progress: false
+
+jobs:
+  engine:
+    name: Scan + profit gate + (optional) atomic fire
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-cloud.txt
+
+      - name: Profit-gate unit tests (gate must pass before any gas is spent)
+        run: python -m unittest discover -s tests -t . -v
+
+      - name: Run engine (dry-run unless ARB_CONTRACT + PRIVATE_KEY + LIVE=1)
+        env:
+          NETWORK: ${{ vars.NETWORK || 'BSC' }}
+          RUN_SECONDS: ${{ github.event.inputs.seconds || '16800' }}
+          SCAN_INTERVAL: "6"
+          ARB_CONTRACT: ${{ secrets.ARB_CONTRACT }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          LIVE: ${{ vars.LIVE || '0' }}
+        run: |
+          echo "engine start $(date -u)"
+          python -u -m mev_engine.run_engine --network "$NETWORK"

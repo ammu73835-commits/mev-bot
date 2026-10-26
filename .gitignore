@@ -7,3 +7,4 @@ logs/
 key.txt
 phantom_key.json
 mev-bot-deploy.zip
+mev_engine/build/
