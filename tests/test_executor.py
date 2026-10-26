@@ -26,6 +26,13 @@ class FakeChain:
         return PAIR
 
 
+def _encode_arb(contract, args) -> str:
+    """web3>=7 uses encode_abi(), web3 6.x uses encodeABI() - support both."""
+    if hasattr(contract, "encode_abi"):
+        return contract.encode_abi("arb", args=list(args))
+    return contract.encodeABI("arb", args=list(args))
+
+
 def make_opp(**overrides) -> Opportunity:
     base = dict(
         network="BSC",
@@ -94,7 +101,7 @@ class TestExecutorArgs(unittest.TestCase):
         """The real proof: what web3 encodes is exactly what Solidity abi.decode reads."""
         args = self.executor.build_args(make_opp())
         contract = Web3().eth.contract(address=ZERO_ADDRESS, abi=ARB_ABI)
-        encoded = contract.encode_abi(abi_element_identifier="arb", args=args)
+        encoded = _encode_arb(contract, args)
         self.assertTrue(encoded.startswith("0x"))
 
         leg = "(uint8,address,address,address,uint24)"
