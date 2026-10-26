@@ -6,5 +6,6 @@ logs/
 .env
 key.txt
 phantom_key.json
+check_wallets.py
 mev-bot-deploy.zip
 mev_engine/build/
