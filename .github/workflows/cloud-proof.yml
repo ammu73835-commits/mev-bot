@@ -1,0 +1,25 @@
+name: Cloud Proof Run (45s)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-cloud.txt
+
+      - name: Run bot for 45 seconds and show live output
+        run: |
+          timeout 45 python -u run_all_bots.py || true
+          echo "--- proof run finished ---"
