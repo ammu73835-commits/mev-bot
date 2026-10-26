@@ -1,0 +1,36 @@
+name: MEV Bot Cloud Runner (5 Networks)
+
+on:
+  schedule:
+    # Every 5 hours. Each run stays alive ~4h50m, so the bot is live on
+    # GitHub's cloud almost 24/7 - even when your PC is switched off.
+    - cron: "7 */5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mev-bot-cloud
+  cancel-in-progress: false
+
+jobs:
+  run-bot:
+    name: Run 5-network MEV bot
+    runs-on: ubuntu-latest
+    timeout-minutes: 290
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-cloud.txt
+
+      - name: Start MEV bot (BSC / Arbitrum / Polygon / Base / Solana)
+        run: |
+          echo "Started at $(date -u)"
+          python -u run_all_bots.py

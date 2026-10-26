@@ -3,6 +3,10 @@
 Run all 5 network MEV bots in one process
 """
 import asyncio
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import requests
 from web3 import Web3
 
@@ -63,8 +67,30 @@ async def monitor_solana():
             print(f"[Solana] Error: {e}")
             await asyncio.sleep(3)
 
+def start_health_server():
+    """Cloud health-check endpoint (Render / other PaaS set $PORT)."""
+    port = os.getenv("PORT")
+    if not port:
+        return
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"MEV BOT LIVE - 5 NETWORKS\n")
+
+        def log_message(self, *args):
+            pass
+
+    server = HTTPServer(("0.0.0.0", int(port)), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    print(f"[health] listening on 0.0.0.0:{port}")
+
+
 async def main():
     print_banner()
+    start_health_server()
     
     # Start all EVM networks
     evm_tasks = [

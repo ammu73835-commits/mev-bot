@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mev-bot
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements-cloud.txt
+    startCommand: python run_all_bots.py
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
