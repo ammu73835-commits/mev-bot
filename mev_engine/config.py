@@ -199,12 +199,43 @@ BASE = Network(
     explorer="https://basescan.org",
 )
 
+ETHEREUM = Network(
+    name="Ethereum",
+    chain_id=1,
+    rpcs=[
+        "https://ethereum-rpc.publicnode.com",
+        "https://eth.llamarpc.com",
+        "https://rpc.ankr.com/eth",
+    ],
+    wrapped="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",  # WETH
+    venues=(
+        Venue("UniV2", "v2", "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+              factory="0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f", flashable=True),
+        Venue("SushiV2", "v2", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
+              factory="0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"),
+        Venue("UniV3-100", "v3", UNI_V3_ROUTER, quoter=UNI_V3_QUOTER, fee=100),
+        Venue("UniV3-500", "v3", UNI_V3_ROUTER, quoter=UNI_V3_QUOTER, fee=500),
+        Venue("UniV3-3000", "v3", UNI_V3_ROUTER, quoter=UNI_V3_QUOTER, fee=3000),
+    ),
+    tokens={
+        "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+        "WBTC": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    },
+    gas_units=250_000,
+    flash_fee_bps=30,
+    explorer="https://etherscan.io",
+)
+
 NETWORKS = {
     "BSC": BSC,
     "Polygon": POLYGON,
     "Arbitrum": ARBITRUM,
     "Base": BASE,
+    "Ethereum": ETHEREUM,
 }
+
 
 
 

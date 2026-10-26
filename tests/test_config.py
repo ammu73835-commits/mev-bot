@@ -68,6 +68,18 @@ class TestVenues(unittest.TestCase):
         with self.assertRaises(KeyError):
             get_network("dogechain")
 
+    def test_five_networks_are_configured(self):
+        self.assertEqual(
+            sorted(NETWORKS), ["Arbitrum", "BSC", "Base", "Ethereum", "Polygon"]
+        )
+
+    def test_ethereum_is_wired_to_mainnet(self):
+        eth = get_network("ethereum")
+        self.assertEqual(eth.chain_id, 1)
+        self.assertEqual(eth.wrapped.lower(), "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+        self.assertTrue(eth.flash_venue().flashable)
+        self.assertIn("USDC", eth.tokens)
+
     def test_trade_sizes_are_positive(self):
         self.assertTrue(TRADE_SIZES)
         for size in TRADE_SIZES:

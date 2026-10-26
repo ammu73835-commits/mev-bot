@@ -2,15 +2,20 @@ name: MEV Engine Cloud (profit-gated arbitrage, 24/7)
 
 on:
   schedule:
-    # Offset from the heartbeat job (which runs at :07) so both stay alive.
-    # Each run lives ~4h40m => near-continuous coverage, free on public repos.
-    - cron: "17 */5 * * *"
+    # Every 4h while each run lives 4h40m: the next trigger queues behind the
+    # active run (same concurrency group) and starts the instant it ends =>
+    # back-to-back 24/7 coverage, still free on public repos.
+    - cron: "17 */4 * * *"
   workflow_dispatch:
     inputs:
       seconds:
-        description: "How long the engine should run (seconds)"
+        description: "How long the engine should run (seconds, split across all networks)"
         required: false
         default: "600"
+      network:
+        description: "Network name, or 'all' for all 5 chains"
+        required: false
+        default: "all"
 
 concurrency:
   group: mev-engine
@@ -38,7 +43,8 @@ jobs:
 
       - name: Run engine (dry-run unless ARB_CONTRACT + PRIVATE_KEY + LIVE=1)
         env:
-          NETWORK: ${{ vars.NETWORK || 'BSC' }}
+          NETWORK: ${{ github.event.inputs.network || vars.NETWORK || 'all' }}
+          ARB_NETWORK: ${{ vars.ARB_NETWORK || 'BSC' }}
           RUN_SECONDS: ${{ github.event.inputs.seconds || '16800' }}
           SCAN_INTERVAL: "6"
           ARB_CONTRACT: ${{ secrets.ARB_CONTRACT }}
