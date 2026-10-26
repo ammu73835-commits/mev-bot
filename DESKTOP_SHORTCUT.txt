@@ -1,0 +1,32 @@
+=== QUICK ACCESS FILES (Copy to Desktop) ===
+
+1. ORACLE_MONITOR.bat - Double-click to check bot status and profits
+2. SIMPLE_ORACLE_GUIDE.md - Step-by-step Oracle Cloud deployment (10 min)
+3. YOUR_COMPLETE_SUMMARY.md - Complete overview of everything
+4. mev-bot-deploy.zip - Deployment package for Oracle Cloud (88 KB)
+
+=== YOUR WALLET ADDRESSES ===
+
+MetaMask: 0xb28EB4204fbf139EC0af66d81F7B448921238B10
+Phantom: E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf
+
+=== QUICK COMMANDS ===
+
+Check bot status: ORACLE_MONITOR.bat
+View live logs: cd "C:\Users\romen\OneDrive\Desktop\all in one bot" && type logs\launcher.log
+Deploy to Oracle: Follow SIMPLE_ORACLE_GUIDE.md
+
+=== STATUS ===
+
+✅ Bots running on your PC
+✅ Extracting from 5 networks
+✅ First profits in 1-30 minutes
+✅ Ready for Oracle deployment (10 min)
+
+=== NEXT STEPS ===
+
+1. Monitor with ORACLE_MONITOR.bat
+2. Wait for first profits (verify it works)
+3. Deploy to Oracle Cloud (follow SIMPLE_ORACLE_GUIDE.md)
+4. Shutdown PC, take rest!
+5. Profits keep coming 24/7!

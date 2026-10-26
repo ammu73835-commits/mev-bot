@@ -1,0 +1,100 @@
+{
+  "bot_name": "All-in-One MEV Extractor",
+  "version": "1.0.0",
+  "execution_mode": {
+    "continuous": true,
+    "auto_restart": true,
+    "max_retries": 3,
+    "retry_delay_seconds": 5
+  },
+  "wallet_allocation": {
+    "metamask": {
+      "arbitrum": {"percentage": 33.33, "min_balance_eth": 0.01},
+      "polygon": {"percentage": 33.34, "min_balance_matic": 10},
+      "base": {"percentage": 33.33, "min_balance_eth": 0.01}
+    },
+    "phantom": {
+      "solana": {"percentage": 100, "min_balance_sol": 0.1}
+    }
+  },
+  "gas_optimization": {
+    "dynamic_gas_pricing": true,
+    "gas_price_buffer_percentage": 15,
+    "max_gas_waste_per_tx_usd": 2.0,
+    "skip_if_gas_above_gwei": {
+      "arbitrum": 200,
+      "polygon": 300,
+      "base": 150
+    }
+  },
+  "profit_locking": {
+    "simulation_required": true,
+    "min_confirmed_profit_usd": 3.0,
+    "simulate_with_real_gas": true,
+    "pre_check_slippage": true
+  },
+  "bot_competition": {
+    "priority_over_other_bots": true,
+    "gas_price_premium_percentage": 20,
+    "use_flashbots": true,
+    "use_solana_jit": true,
+    "mempool_scan_interval_ms": 100,
+    "tx_build_time_ms": 50
+  },
+  "strategies": {
+    "sandwich_attack": {
+      "enabled": true,
+      "min_victim_tx_usd": 100,
+      "max_victim_tx_usd": 50000,
+      "front_run_gas_multiplier": 1.2,
+      "back_run_gas_multiplier": 1.1
+    },
+    "pending_tx_stealer": {
+      "enabled": true,
+      "min_profit_usd": 5,
+      "monitor_large_transfers": true,
+      "min_transfer_value_usd": 1000
+    },
+    "arbitrage": {
+      "enabled": true,
+      "min_spread_percentage": 0.5,
+      "max_arb_amount_usd": 1000,
+      "cross_dex_only": true
+    },
+    "solana_front_run": {
+      "enabled": true,
+      "monitor_mempool": true,
+      "priority_fee_lamports": 5000,
+      "min_profit_sol": 0.01
+    },
+    "jit_liquidity": {
+      "enabled": true,
+      "target_large_swaps": true,
+      "min_swap_usd": 10000,
+      "max_priority_fee_lamports": 50000
+    }
+  },
+  "monitoring": {
+    "log_level": "INFO",
+    "log_file": "logs/mev_bot.log",
+    "metrics_enabled": true,
+    "metrics_port": 9090,
+    "alert_on_profit_usd": 50,
+    "alert_on_loss_usd": 20
+  },
+  "deployment": {
+    "platform": "oracle_cloud_free",
+    "auto_scale": false,
+    "health_check_interval_seconds": 30,
+    "max_uptime_hours": 720
+  },
+  "mcp_integration": {
+    "enabled": true,
+    "real_time_ai_analysis": true,
+    "ai_decision_threshold_usd": 100,
+    "ai_servers": [
+      "http://localhost:8082/evm_analysis",
+      "http://localhost:8083/solana_analysis"
+    ]
+  }
+}

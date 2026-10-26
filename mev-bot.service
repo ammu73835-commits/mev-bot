@@ -1,0 +1,18 @@
+[Unit]
+Description=MEV Bot Service - 5 Networks
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/mev-bot
+Environment="PATH=/home/ubuntu/mev-bot/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/ubuntu/mev-bot/venv/bin/python3 /home/ubuntu/mev-bot/run_all_bots.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mev-bot
+
+[Install]
+WantedBy=multi-user.target
