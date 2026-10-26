@@ -33,12 +33,18 @@ python -m unittest discover -s tests -t .
 |---|---|---|
 | BSC (56) | PancakeV2 (flash), BiswapV2, SushiBSC, BakeryV2 | PancakeV3 100 / 500 / 2500 |
 | Polygon (137) | QuickSwapV2 (flash), SushiV2 | UniV3 500 / 3000 |
+| Arbitrum (42161) | UniV2 (flash only), SushiV2 | UniV3 500 / 3000 |
+| Base (8453) | UniV2 (flash only) | UniV3 500 / 3000 |
 
 Each `Venue` (`config.py`) is either `kind="v2"` (quoted with
 `getAmountsOut`) or `kind="v3"` (quoted with `QuoterV2.quoteExactInputSingle`
 for one fee tier). V3 is the edge: a 0.01 % pool is 2 bps round-trip versus
 2 × 0.25 % on V2, which is often the difference between a live and dead spread.
-`Chain.dead_venues()` warns at start-up if a configured address has no bytecode.
+`scan=False` marks a venue as *flash-only*: on Arbitrum/Base the Uniswap-V2
+pools only exist to borrow from, because their prices are stale dust and would
+show phantom spreads. `Chain.dead_venues()` warns at start-up if a configured
+address has no bytecode, and `Chain.scan_venues` is what the sweep iterates.
+
 
 ## Layout
 

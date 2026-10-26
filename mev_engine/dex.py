@@ -300,4 +300,10 @@ class Chain:
     def stats(self):
         return {"quotes": self._quotes, "errors": self._errors}
 
+    @property
+    def scan_venues(self) -> List[str]:
+        """Venue names worth quoting (flash-only / dust pools are excluded)."""
+        return [name for name, venue in self.venues.items() if venue.scan]
+
+
 

@@ -114,7 +114,7 @@ def scan_pair(
     token = Web3.to_checksum_address(token)
 
     buys = chain.quote_many(
-        [(name, name, wrapped, token, amount_in_wei) for name in chain.venues]
+        [(name, name, wrapped, token, amount_in_wei) for name in chain.scan_venues]
     )
     buys = {name: out for name, out in buys.items() if out}
     if len(buys) < 2:
@@ -122,7 +122,7 @@ def scan_pair(
 
     best_buy = max(buys, key=buys.get)
     token_amount = buys[best_buy]
-    sell_names = [name for name in chain.venues if name != best_buy]
+    sell_names = [name for name in chain.scan_venues if name != best_buy]
     sells = chain.quote_many(
         [(name, name, token, wrapped, token_amount) for name in sell_names]
     )
@@ -160,7 +160,7 @@ def scan(
     buy_reqs = []
     for symbol, address, size in tasks:
         amount_in = int(size * WEI)
-        for router_name in chain.venues:
+        for router_name in chain.scan_venues:
             buy_reqs.append(
                 ((symbol, size, router_name), router_name, wrapped, address, amount_in)
             )
@@ -170,7 +170,7 @@ def scan(
     best_buys: Dict[Tuple[str, float], Tuple[str, int]] = {}
     for symbol, address, size in tasks:
         options = {
-            name: buy_quotes.get((symbol, size, name)) for name in chain.venues
+            name: buy_quotes.get((symbol, size, name)) for name in chain.scan_venues
         }
         options = {k: v for k, v in options.items() if v}
         if len(options) >= 2:
@@ -180,7 +180,7 @@ def scan(
     sell_reqs = []
     token_by_key = {(symbol, size): address for symbol, address, size in tasks}
     for (symbol, size), (cheapest, token_amount) in best_buys.items():
-        for router_name in chain.venues:
+        for router_name in chain.scan_venues:
             if router_name == cheapest:
                 continue
             sell_reqs.append(
@@ -196,7 +196,7 @@ def scan(
 
     opportunities: List[Opportunity] = []
     for (symbol, size), (cheapest, token_amount) in best_buys.items():
-        for router_name in chain.venues:
+        for router_name in chain.scan_venues:
             if router_name == cheapest:
                 continue
             amount_out = sell_quotes.get((symbol, size, cheapest, router_name))

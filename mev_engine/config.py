@@ -38,6 +38,7 @@ class Venue:
     quoter: str = ""      # v3 only
     fee: int = 0          # v3 fee tier
     flashable: bool = False  # can we borrow the flash loan from this V2 pair?
+    scan: bool = True        # quote it in the sweep? (False = flash-only / dust pool)
 
 
 @dataclass(frozen=True)
@@ -140,7 +141,71 @@ POLYGON = Network(
     explorer="https://polygonscan.com",
 )
 
-NETWORKS = {"BSC": BSC, "Polygon": POLYGON}
+ARBITRUM = Network(
+    name="Arbitrum",
+    chain_id=42161,
+    rpcs=[
+        "https://arb1.arbitrum.io/rpc",
+        "https://arbitrum.llamarpc.com",
+        "https://arbitrum-one-rpc.publicnode.com",
+    ],
+    wrapped="0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",  # WETH
+    venues=(
+        Venue("UniV2", "v2", "0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24",
+              factory="0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9", flashable=True,
+              scan=False),
+        Venue("SushiV2", "v2", "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+              factory="0xc35DADB65012eC5796536bD9864eD8773aBc74C4"),
+        Venue("UniV3-500", "v3", UNI_V3_ROUTER, quoter=UNI_V3_QUOTER, fee=500),
+        Venue("UniV3-3000", "v3", UNI_V3_ROUTER, quoter=UNI_V3_QUOTER, fee=3000),
+    ),
+    tokens={
+        "USDC": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "USDCe": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+        "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        "WBTC": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+        "ARB": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+    },
+    gas_units=420_000,  # L1 data fee included
+    flash_fee_bps=30,
+    explorer="https://arbiscan.io",
+)
+
+BASE = Network(
+    name="Base",
+    chain_id=8453,
+    rpcs=[
+        "https://mainnet.base.org",
+        "https://base.llamarpc.com",
+        "https://base-rpc.publicnode.com",
+    ],
+    wrapped="0x4200000000000000000000000000000000000006",  # WETH
+    venues=(
+        Venue("UniV2", "v2", "0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24",
+              factory="0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6", flashable=True,
+              scan=False),
+        Venue("UniV3-500", "v3", "0x2626664c2603336E57B271c5C0b26F421741e481",
+              quoter="0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a", fee=500),
+        Venue("UniV3-3000", "v3", "0x2626664c2603336E57B271c5C0b26F421741e481",
+              quoter="0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a", fee=3000),
+    ),
+    tokens={
+        "USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "CBETH": "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
+        "DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    },
+    gas_units=420_000,
+    flash_fee_bps=30,
+    explorer="https://basescan.org",
+)
+
+NETWORKS = {
+    "BSC": BSC,
+    "Polygon": POLYGON,
+    "Arbitrum": ARBITRUM,
+    "Base": BASE,
+}
+
 
 
 def get_network(name: str) -> Network:

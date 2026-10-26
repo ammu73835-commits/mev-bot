@@ -50,6 +50,10 @@ class TestVenues(unittest.TestCase):
         for network, venue in self.each_venue():
             self.assertIn(venue.kind, ("v2", "v3"), f"{network.name}/{venue.name}")
 
+    def test_at_least_two_scannable_venues(self):
+        for network in NETWORKS.values():
+            self.assertGreaterEqual(len([v for v in network.venues if v.scan]), 2, network.name)
+
     def test_exactly_one_flash_source(self):
         for network in NETWORKS.values():
             flashable = [v for v in network.venues if v.flashable]
