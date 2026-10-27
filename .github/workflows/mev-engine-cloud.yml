@@ -41,15 +41,11 @@ jobs:
       - name: Profit-gate unit tests (gate must pass before any gas is spent)
         run: python -m unittest discover -s tests -t . -v
 
-      - name: Run engine (dry-run unless ARB_CONTRACT + PRIVATE_KEY + LIVE=1)
+      - name: Run 24/7 orchestrator (funding watch + auto-deploy + profit-locked fire)
         env:
-          NETWORK: ${{ github.event.inputs.network || vars.NETWORK || 'all' }}
-          ARB_NETWORK: ${{ vars.ARB_NETWORK || 'BSC' }}
-          RUN_SECONDS: ${{ github.event.inputs.seconds || '16800' }}
-          SCAN_INTERVAL: "6"
-          ARB_CONTRACT: ${{ secrets.ARB_CONTRACT }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          LIVE: ${{ vars.LIVE || '0' }}
+          SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+          SLICE_SECONDS: "90"
         run: |
-          echo "engine start $(date -u)"
-          python -u -m mev_engine.run_engine --network "$NETWORK"
+          echo "orchestrator start $(date -u)"
+          python -u MONEY_EXTRACTOR_247.py --minutes 265

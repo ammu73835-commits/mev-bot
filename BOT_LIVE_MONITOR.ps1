@@ -5,8 +5,8 @@
 #   needed; this monitor is your "oracle" on the desktop.)
 # ============================================================
 $repo  = "ammu73835-commits/mev-bot"
-$mm    = "0xb28EB4204fbf139EC0af66d81F7B448921238B10"
-$ph    = "E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf"
+$mm    = "0xbD1cA770a06b69B4b7630a7d091CCBb99ceed752"
+$ph    = "26mpuM6zLiLN5nooeq48rXv978L1EnUkAt9y1dKy6ZGe"
 $root  = "c:\Users\romen\OneDrive\Desktop\all in one bot"
 $script:bsc = "?"; $script:sol = "?"; $lastBalFetch = [datetime]::MinValue
 

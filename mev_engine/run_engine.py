@@ -20,6 +20,8 @@ from .scanner import Opportunity, best, profitable, scan
 
 WEI = 10**18
 ALL_ALIASES = ("all", "*", "every", "networks")
+SOLANA_ALIASES = ("solana", "sol", "spl")
+SOLANA_NAME = "Solana"
 
 
 def parse_tokens(network, only):
@@ -136,11 +138,22 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     requested = (args.network or "BSC").strip()
-    names = list(NETWORKS) if requested.lower() in ALL_ALIASES else [requested]
+    if requested.lower() in ALL_ALIASES:
+        names = list(NETWORKS) + [SOLANA_NAME]
+    else:
+        names = [requested]
     per_network = max(15, args.seconds // max(1, len(names)))
 
     rows = []
     for name in names:
+        if name.lower() in SOLANA_ALIASES:
+            try:
+                from . import solana
+
+                rows.append(solana.run(per_network, args.interval, args.min_bps))
+            except Exception as exc:            # never let Solana kill the EVM loop
+                print(f"  Solana skipped: {exc}")
+            continue
         try:
             network = get_network(name)
         except KeyError as exc:

@@ -1,0 +1,13 @@
+#!/bin/sh
+# pre-commit: block private keys from ever entering git history again.
+# EVM key: 0x + 64 hex chars | Solana key: 87-88 base58 chars (64-byte secret)
+if git diff --cached | grep -nE '0x[0-9a-fA-F]{64}|[1-9A-HJ-NP-Za-km-z]{87,88}' >/dev/null 2>&1; then
+  echo ""
+  echo "SECRET DETECTED in staged changes - COMMIT BLOCKED:"
+  git diff --cached | grep -nE '0x[0-9a-fA-F]{64}|[1-9A-HJ-NP-Za-km-z]{87,88}' | head -5
+  echo ""
+  echo "If these are real keys: rotate them and NEVER commit."
+  echo "(bypass if you are 100% sure it is not a key: git commit --no-verify)"
+  exit 1
+fi
+exit 0

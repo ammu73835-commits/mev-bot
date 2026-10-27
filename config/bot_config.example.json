@@ -1,0 +1,12 @@
+{
+  "evm_private_key": "0xYOUR_EVM_PRIVATE_KEY_HERE",
+  "evm_receiving_address": "0xYOUR_EVM_WALLET_ADDRESS",
+  "solana_keypair": "YOUR_SOLANA_SECRET_KEY_BASE58",
+  "solana_receiving_address": "YOUR_SOLANA_WALLET_ADDRESS",
+  "auto_restart": true,
+  "max_retries": 999,
+  "min_profit_usd": 3.0,
+  "gas_safety_margin": 1.5,
+  "confidence_threshold": 60,
+  "networks_enabled": ["bsc", "arbitrum", "polygon", "base", "ethereum", "solana"]
+}

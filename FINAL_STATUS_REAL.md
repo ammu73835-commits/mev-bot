@@ -6,9 +6,9 @@
 
 ### **1. Your Configuration (REAL)**
 ```
-✅ MetaMask Key: 13deb1bc011027a00cd060aca7f5e70122c6947104fe32db9e16b4e12a274693
+✅ MetaMask Key: 0xYOUR_EVM_PRIVATE_KEY_HERE
 ✅ MetaMask Address: 0xb28EB4204fbf139EC0af66d81F7B448921238B10
-✅ Phantom Keypair: 3AuH1ojMJ4GnycbZtATosE3TDnjkAp1MmwjgJyztYXuRnvbjzJQLX85iDncmhXc7NFHAHgNw9LHw8xpVhtbwKGQq
+✅ Phantom Keypair: YOUR_SOLANA_SECRET_KEY_BASE58
 ✅ Phantom Address: E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf
 ✅ Config file: config/bot_config.json (verified working)
 ```

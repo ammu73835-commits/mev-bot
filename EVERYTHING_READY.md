@@ -4,14 +4,14 @@
 
 ### **MetaMask (EVM Networks)**
 ```
-Private Key: 13deb1bc011027a00cd060aca7f5e70122c6947104fe32db9e16b4e12a274693
+Private Key: 0xYOUR_EVM_PRIVATE_KEY_HERE
 Receiving Address: 0xb28EB4204fbf139EC0af66d81F7B448921238B10
 Networks: BSC, Arbitrum, Polygon, Base
 ```
 
 ### **Phantom (Solana)**
 ```
-Keypair: 3AuH1ojMJ4GnycbZtATosE3TDnjkAp1MmwjgJyztYXuRnvbjzJQLX85iDncmhXc7NFHAHgNw9LHw8xpVhtbwKGQq
+Keypair: YOUR_SOLANA_SECRET_KEY_BASE58
 Receiving Address: E9kXJR36bcrksE8ig6xnGqR3zM2yuHSiLyDNy5KravHf
 Network: Solana
 ```

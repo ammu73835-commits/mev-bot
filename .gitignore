@@ -9,3 +9,12 @@ phantom_key.json
 check_wallets.py
 mev-bot-deploy.zip
 mev_engine/build/
+# --- secrets: never commit these (see SECURITY.md)
+config/bot_config.json
+config/*.secret.json
+*.secret.json
+_trace*.py
+_scrub.py
+bot_keys.local.json
+generate_fresh_wallets.py
+
