@@ -344,7 +344,8 @@ def rotation(keys, stop_after_minutes=None, once=False):
     while True:
         _state["cycles"] += 1
         try:
-            evm_live, sol_live = check_funding(keys)
+            keys = load_keys()          # re-read every cycle: wallet rotation
+            evm_live, sol_live = check_funding(keys)   # picks up instantly
             write_status()
         except Exception as exc:
             _state["last_error"] = f"funding-watch: {exc}"
