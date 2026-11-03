@@ -57,7 +57,8 @@ BSC_EXTRA_SLICES = int(os.getenv("BSC_EXTRA_SLICES", "1"))  # BSC gets extra tim
 # Deploy ArbExecutor automatically once the BSC wallet can afford it.
 AUTO_DEPLOY = os.getenv("AUTO_DEPLOY", "1").strip().lower() in ("1", "true", "yes", "on")
 # Minimum BNB before we are allowed to spend the (single, tiny) deploy tx.
-MIN_DEPLOY_BNB = float(os.getenv("MIN_DEPLOY_BNB", "0.01"))
+# $5 class deposits (~0.0075 BNB) must trigger the deploy: threshold is 0.004.
+MIN_DEPLOY_BNB = float(os.getenv("MIN_DEPLOY_BNB", "0.004"))
 # Minimum SOL before Solana legs may fire.
 MIN_LIVE_SOL = float(os.getenv("MIN_LIVE_SOL", "0.02"))
 
