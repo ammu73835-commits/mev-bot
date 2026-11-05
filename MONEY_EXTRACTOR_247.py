@@ -362,8 +362,11 @@ def run_segment(network, seconds, live, keys, sol_live=False, contract=None):
         # otherwise it stays a pure quote-only dry-run (0 lamports possible).
         if sol_live and keys.get("solana_private_key_base58"):
             env["SOLANA_PRIVATE_KEY"] = keys["solana_private_key_base58"]
+        # Stay inside the FREE Jupiter rate limit: fewer quotes, slower pace.
+        env.setdefault("SOLANA_TOKENS", "USDC,JUP")
+        env.setdefault("SOLANA_SIZES", "0.5,1")
         cmd = [sys.executable, "-m", "mev_engine.solana",
-               "--seconds", str(seconds), "--interval", "8"]
+               "--seconds", str(seconds), "--interval", "20"]
     else:
         cmd = [sys.executable, "-m", "mev_engine.run_engine",
                "--network", network, "--seconds", str(seconds), "--interval", "8"]
