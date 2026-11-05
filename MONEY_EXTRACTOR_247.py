@@ -44,6 +44,7 @@ LOGS = HERE / "logs"
 LOGS.mkdir(exist_ok=True)
 
 KEYS_FILE = HERE / "bot_keys.local.json"          # git-ignored, never committed
+SECRETS_FILE = HERE / "secrets.py"                # git-ignored, user pastes keys here
 CONTRACT_ARTIFACT = HERE / "mev_engine" / "build" / "ArbExecutor.json"
 STATUS_FILE = LOGS / "status.json"
 LEDGER_FILE = LOGS / "profit_ledger.json"
@@ -106,6 +107,36 @@ def load_keys():
             keys.setdefault("solana_address", data.get("solana_address"))
         except Exception as exc:
             print(f"[keys] WARNING: could not parse {KEYS_FILE.name}: {exc}")
+
+    # secrets.py - user pastes keys directly into this git-ignored file.
+    if SECRETS_FILE.exists():
+        try:
+            ns = {}
+            exec(SECRETS_FILE.read_text(encoding="utf-8"), ns)  # local user file only
+            if ns.get("EVM_PRIVATE_KEY"):
+                keys["evm_private_key"] = ns["EVM_PRIVATE_KEY"].strip()
+                keys.pop("evm_address", None)  # re-derive from the new key
+            if ns.get("SOLANA_PRIVATE_KEY"):
+                keys["solana_private_key_base58"] = ns["SOLANA_PRIVATE_KEY"].strip()
+                keys.pop("solana_address", None)
+        except Exception as exc:
+            print(f"[keys] WARNING: could not read secrets.py: {exc}")
+
+    # derive missing addresses so the funding watch knows where to look
+    if keys.get("evm_private_key") and not keys.get("evm_address"):
+        try:
+            from web3 import Web3
+            keys["evm_address"] = Web3().eth.account.from_key(
+                keys["evm_private_key"]).address
+        except Exception:
+            pass
+    if keys.get("solana_private_key_base58") and not keys.get("solana_address"):
+        try:
+            from solders.keypair import Keypair
+            keys["solana_address"] = str(Keypair.from_base58_string(
+                keys["solana_private_key_base58"]).pubkey())
+        except Exception:
+            pass
 
     if not keys.get("evm_private_key") and not keys.get("solana_private_key_base58"):
         return {}

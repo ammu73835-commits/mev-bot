@@ -17,4 +17,5 @@ _trace*.py
 _scrub.py
 bot_keys.local.json
 generate_fresh_wallets.py
+secrets.py
 
