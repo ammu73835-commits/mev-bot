@@ -71,6 +71,9 @@ RPCS = {
     "Base": ["https://mainnet.base.org", "https://base-rpc.publicnode.com"],
     "Ethereum": ["https://ethereum-rpc.publicnode.com", "https://eth.llamarpc.com"],
 }
+CHAIN_IDS = {"BSC": 56, "Polygon": 137, "Arbitrum": 42161, "Base": 8453, "Ethereum": 1}
+# Minimum native balance (in each chain's own coin) before we deploy there.
+MIN_NATIVE = {"BSC": 0.004, "Polygon": 3.0, "Arbitrum": 0.002, "Base": 0.002, "Ethereum": 0.004}
 SOLANA_RPC = os.getenv("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
 
 _state = {
@@ -221,18 +224,18 @@ def record_fired(line):
 
 
 # ------------------------------------------------------------------ deploy
-def deploy_arb_executor(private_key):
-    """Deploy ArbExecutor from the pre-built artifact (no solc needed).
+def deploy_arb_executor(network, private_key):
+    """Deploy ArbExecutor from the pre-built artifact on the given network.
 
-    Costs one small tx (~0.001-0.002 BNB on BSC) - the only gas this
-    orchestrator itself ever spends, and only after the wallet is funded.
+    Costs one small tx - the only gas this orchestrator itself ever spends,
+    and only after that chain's wallet is funded.
     """
     if not CONTRACT_ARTIFACT.exists():
         print("[deploy] artifact missing; run: python -m mev_engine.contract_tools compile")
         return None
     artifact = json.loads(CONTRACT_ARTIFACT.read_text(encoding="utf-8"))
     from web3 import Web3
-    for rpc in RPCS["BSC"]:
+    for rpc in RPCS[network]:
         try:
             w3 = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 20}))
             if not w3.is_connected():
@@ -241,7 +244,7 @@ def deploy_arb_executor(private_key):
             factory = w3.eth.contract(abi=artifact["abi"], bytecode=artifact["bytecode"])
             tx = factory.constructor().build_transaction({
                 "from": account.address,
-                "chainId": 56,
+                "chainId": CHAIN_IDS[network],
                 "nonce": w3.eth.get_transaction_count(account.address),
                 "gas": 1_600_000,
                 "gasPrice": int(w3.eth.gas_price * 1.15),
@@ -251,26 +254,48 @@ def deploy_arb_executor(private_key):
             tx_hash = w3.eth.send_raw_transaction(raw)
             receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
             if receipt.status != 1:
-                print(f"[deploy] deploy tx reverted: {tx_hash.hex()}")
+                print(f"[deploy] {network} deploy tx reverted: {tx_hash.hex()}")
                 return None
             address = receipt["contractAddress"]
-            ARB_CONTRACT_STATE.write_text(
-                json.dumps({"address": address, "tx": tx_hash.hex(), "chain": "BSC",
-                            "deployed": datetime.now(timezone.utc).isoformat()}, indent=2),
-                encoding="utf-8")
-            print(f"[deploy] ArbExecutor LIVE at {address} (tx {tx_hash.hex()})")
+            _save_contract(network, address, tx_hash.hex())
+            print(f"[deploy] ArbExecutor LIVE on {network} at {address} (tx {tx_hash.hex()})")
             return address
         except Exception as exc:
-            print(f"[deploy] {rpc} failed: {exc}")
+            print(f"[deploy] {network} via {rpc} failed: {exc}")
     return None
 
 
-def cached_contract():
-    if ARB_CONTRACT_STATE.exists():
-        try:
-            return json.loads(ARB_CONTRACT_STATE.read_text(encoding="utf-8"))["address"]
-        except Exception:
-            return None
+def _load_contracts():
+    try:
+        if ARB_CONTRACT_STATE.exists():
+            data = json.loads(ARB_CONTRACT_STATE.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+    except Exception:
+        pass
+    return {}
+
+
+def _save_contract(network, address, tx_hash):
+    contracts = _load_contracts()
+    contracts[network] = {
+        "address": address, "tx": tx_hash, "chain": network,
+        "deployed": datetime.now(timezone.utc).isoformat(),
+    }
+    ARB_CONTRACT_STATE.write_text(json.dumps(contracts, indent=2), encoding="utf-8")
+
+
+def cached_contract(network=None):
+    contracts = _load_contracts()
+    if network:
+        entry = contracts.get(network) or {}
+        if entry.get("address"):
+            return entry["address"]
+        return None
+    # legacy: any contract at all
+    for entry in contracts.values():
+        if entry.get("address"):
+            return entry["address"]
     return os.getenv("ARB_CONTRACT") or None
 
 
@@ -302,31 +327,35 @@ def check_funding(keys):
         FUNDING_ALERT.write_text(alert, encoding="utf-8")
         print(alert)
 
-    # --- auto-deploy once, when BSC can afford it -------------------------
-    contract = cached_contract()
-    if (not contract and AUTO_DEPLOY and bnb >= MIN_DEPLOY_BNB
-            and keys.get("evm_private_key")):
-        print("[funding] wallet funded - deploying ArbExecutor (one small tx)...")
-        contract = deploy_arb_executor(keys["evm_private_key"])
-    _state["arb_contract"] = contract
+    # --- auto-deploy per funded network (one small tx per chain, once) ----
+    live_networks = {}
+    for network in NETWORKS:
+        bal = balances.get(network, 0.0)
+        contract = cached_contract(network)
+        if (not contract and AUTO_DEPLOY and bal >= MIN_NATIVE[network]
+                and keys.get("evm_private_key")):
+            print(f"[funding] {network} funded ({bal}) - deploying ArbExecutor...")
+            contract = deploy_arb_executor(network, keys["evm_private_key"])
+        if contract and keys.get("evm_private_key") and bal >= MIN_NATIVE[network]:
+            live_networks[network] = contract
+    _state["arb_contract"] = live_networks.get("BSC") or (list(live_networks.values())[0] if live_networks else None)
 
-    # --- decide LIVE vs DRY-RUN -------------------------------------------
-    evm_live = bool(contract and keys.get("evm_private_key") and bnb >= MIN_DEPLOY_BNB)
     sol_live = bool(keys.get("solana_private_key_base58") and sol >= MIN_LIVE_SOL)
-    _state["mode"] = "LIVE" if (evm_live or sol_live) else "DRY-RUN"
-    return evm_live, sol_live
+    _state["mode"] = "LIVE" if (live_networks or sol_live) else "DRY-RUN"
+    return live_networks, sol_live
 
 
 # ------------------------------------------------------------------ engine run
-def run_segment(network, seconds, live, keys, sol_live=False):
+def run_segment(network, seconds, live, keys, sol_live=False, contract=None):
     """Run one mev_engine segment as a subprocess and stream-parse output."""
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
     env["DRY_RUN"] = "0" if live else "1"
     env["LIVE"] = "1" if live else "0"
-    if live:
-        env["ARB_CONTRACT"] = _state["arb_contract"] or ""
-        env["ARB_NETWORK"] = "BSC"
+    if live and network != "Solana":
+        # fire live on THIS network with THIS network's contract
+        env["ARB_CONTRACT"] = contract or ""
+        env["ARB_NETWORK"] = network
         env["PRIVATE_KEY"] = keys["evm_private_key"]
     if network == "Solana":
         # Only hand the key to the engine when the wallet can afford fees -
@@ -371,12 +400,12 @@ _t0 = time.time()
 
 
 def rotation(keys, stop_after_minutes=None, once=False):
-    evm_live, sol_live = False, False
+    live_networks, sol_live = {}, False
     while True:
         _state["cycles"] += 1
         try:
             keys = load_keys()          # re-read every cycle: wallet rotation
-            evm_live, sol_live = check_funding(keys)   # picks up instantly
+            live_networks, sol_live = check_funding(keys)  # picks up instantly
             write_status()
         except Exception as exc:
             _state["last_error"] = f"funding-watch: {exc}"
@@ -389,8 +418,10 @@ def rotation(keys, stop_after_minutes=None, once=False):
 
         for network in schedule:
             try:
-                live = sol_live if network == "Solana" else evm_live
-                run_segment(network, SLICE_SECONDS, live, keys)
+                live = sol_live if network == "Solana" else (network in live_networks)
+                contract = live_networks.get(network)
+                run_segment(network, SLICE_SECONDS, live, keys,
+                            sol_live=sol_live, contract=contract)
             except Exception as exc:
                 _state["last_error"] = f"{network}: {exc}"
                 print(f"[watch] {network} crashed: {exc}")
