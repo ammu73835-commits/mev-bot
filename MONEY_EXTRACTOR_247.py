@@ -49,7 +49,9 @@ CONTRACT_ARTIFACT = HERE / "mev_engine" / "build" / "ArbExecutor.json"
 STATUS_FILE = LOGS / "status.json"
 LEDGER_FILE = LOGS / "profit_ledger.json"
 FUNDING_ALERT = LOGS / "FUNDING_DETECTED.txt"
-ARB_CONTRACT_STATE = LOGS / "arb_contract.json"    # deployed address cache
+# Deployed contract registry - TRACKED in git (public addresses, no secrets)
+# so the cloud reuses the same contract instead of re-deploying (zero waste).
+ARB_CONTRACT_STATE = HERE / "config" / "arb_contracts.json"
 
 
 # ------------------------------------------------------------------ tuning
