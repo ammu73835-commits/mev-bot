@@ -192,6 +192,13 @@ def sol_balance(address):
 
 # ------------------------------------------------------------------ status
 def write_status(extra=None):
+    # sanitize: web3 returns Decimal objects that json cannot serialize
+    safe_balances = {}
+    for chain, bal in _state["balances"].items():
+        try:
+            safe_balances[chain] = float(bal)
+        except Exception:
+            safe_balances[chain] = str(bal)
     payload = {
         "heartbeat": datetime.now(timezone.utc).isoformat(),
         "mode": _state["mode"],
@@ -201,7 +208,7 @@ def write_status(extra=None):
         "fired": _state["fired"][-20:],
         "wallet_funded": _state["funding_seen"],
         "arb_contract": _state["arb_contract"],
-        "balances": _state["balances"],
+        "balances": safe_balances,
         "last_error": _state["last_error"],
     }
     if extra:

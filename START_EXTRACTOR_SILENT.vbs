@@ -15,5 +15,5 @@ For Each p In procs
     End If
 Next
 If Not already Then
-    shell.Run "cmd /c cd /d """ & here & """ && python MONEY_EXTRACTOR_247.py >> """ & logFile & """ 2>&1", 0, False
+    shell.Run "cmd /c cd /d """ & here & """ && python -u MONEY_EXTRACTOR_247.py >> """ & logFile & """ 2>&1", 0, False
 End If
